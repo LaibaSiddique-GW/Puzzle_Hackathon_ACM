@@ -182,7 +182,7 @@ class GameState:
                 'spawns': [{'x': 60, 'y': 320}, {'x': 120, 'y': 320}],
                 'tiles': [
                     # Left ground (spawn zone)
-                    {'x': 0,   'y': 400, 'w': 310, 'h': 20},
+                    {'x': 0,   'y': 400, 'w': 250, 'h': 20},
                     # Middle + goal room ground (continuous after door opens)
                     {'x': 330, 'y': 400, 'w': 470, 'h': 20},
                     # Platforms in middle zone
@@ -206,16 +206,17 @@ class GameState:
                 'spawns': [{'x': 60, 'y': 320}, {'x': 110, 'y': 320}],
                 'tiles': [
                     # Left ground
-                    {'x': 0,   'y': 400, 'w': 310, 'h': 20},
+                    {'x': 0,   'y': 400, 'w': 250, 'h': 20},
                     # Left stepping platforms (staircase upward)
                     {'x': 80,  'y': 320, 'w': 80,  'h': 16},
                     {'x': 190, 'y': 240, 'w': 80,  'h': 16},
                     # Right ground (after door)
-                    {'x': 330, 'y': 400, 'w': 470, 'h': 20},
+                    {'x': 330, 'y': 400, 'w': 50, 'h': 20},
                     # Right platforms
                     {'x': 380, 'y': 320, 'w': 80,  'h': 16},
-                    {'x': 510, 'y': 240, 'w': 80,  'h': 16},
+                    {'x': 510, 'y': 200, 'w': 80,  'h': 16},
                     {'x': 620, 'y': 320, 'w': 80,  'h': 16},
+                    {'x': 715, 'y': 110, 'w': 100,  'h': 16},
                     # Walls
                     {'x': 0,   'y': 0,   'w': 16,  'h': 420},
                     {'x': 784, 'y': 0,   'w': 16,  'h': 420},
@@ -226,11 +227,11 @@ class GameState:
                 'pressure_plates': [
                     {'x': 200, 'y': 232, 'w': 60, 'h': 8, 'active': False, 'triggered': False}
                 ],
-                # Goal plate on elevated right platform — must jump up to reach
-                'goal_plate': {'x': 520, 'y': 232, 'w': 60, 'h': 8, 'active': False, 'triggered': False},
+                # Goal plate on lower right platform — must drop down to reach
+                'goal_plate': {'x': 626, 'y': 312, 'w': 60, 'h': 8, 'active': False, 'triggered': False},
                 'goal_door': {'x': 690, 'y': 0, 'w': 20, 'h': 420},
                 'goal_locked': True,
-                'goal': {'x': 715, 'y': 355, 'w': 55, 'h': 45},
+                'goal': {'x': 715, 'y': 55, 'w': 55, 'h': 45},
             }
         }
         return levels.get(n, levels[1])
