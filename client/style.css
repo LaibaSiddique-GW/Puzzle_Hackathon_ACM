@@ -1,3 +1,10 @@
+body {
+  min-height: 100vh;
+  margin: 0;
+  padding: 0;
+  background: url('planet_hopper_bg.jpg') center center/cover no-repeat, #0a0a23;
+  font-family: 'Segoe UI', Arial, sans-serif;
+}
 /* ── Reset & Base ── */
 *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -6,8 +13,10 @@ html, body {
 }
 
 body {
-  background: linear-gradient(135deg, #0f0e17 60%, #4a90d9 100%);
-  color: #fff;
+  background: url('Galaxy_Background_ACM_Hackathon.png') no-repeat center center fixed;
+  background-size: cover;
+  background-color: #0f0e17;
+  color: #af49e6;
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   min-height: 100vh;
   min-height: 100dvh;
@@ -40,7 +49,19 @@ body {
   align-items: center;
   justify-content: center;
   animation: fadeIn 0.5s ease;
+  text-align: center;
 }
+.game-logo {
+  position: fixed;
+  top: 0px;
+  width: 0px;
+  height: 0px;
+  margin: 0px;
+  padding: 0px;
+  display: block;
+  object-fit: scale-down;
+}
+
 .game-entry-box h1 {
   font-size: 3rem;
   color: #f1c40f;
@@ -132,7 +153,7 @@ h1 {
   transition: background 0.2s;
 }
 
-.mode-card button:hover { background: #357abd; }
+.mode-card button:hover { background: #470358; }
 
 /* ── Controls Preview ── */
 #controls-preview {
