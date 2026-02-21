@@ -45,6 +45,14 @@ def solo_level_1():
 def solo_level_2():
     return render_template('solo_level_2.html')
 
+@app.route('/duo_level_1')
+def duo_level_1():
+    return render_template('duo_level_1.html')
+
+@app.route('/duo_level_2')
+def duo_level_2():
+    return render_template('duo_level_2.html')
+
 @app.route('/api/start_game', methods=['POST'])
 def start_game():
     data = request.get_json()

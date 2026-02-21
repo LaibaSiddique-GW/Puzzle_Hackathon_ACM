@@ -64,6 +64,14 @@ function goToSoloLevel2() {
   window.location.href = '/solo_level_2?mode=1&level=2';
 }
 
+function goToDuoLevel2() {
+  running   = false;
+  sessionId = null;
+  gameState = null;
+  won       = false;
+  window.location.href = '/duo_level_2?mode=2&level=2';
+}
+
 // ── Auto-start from URL param ───────────────────────────────────────────────
 window.addEventListener('DOMContentLoaded', () => {
   const params = new URLSearchParams(window.location.search);
@@ -153,10 +161,17 @@ function drawPressurePlate(plate) {
   ctx.fillStyle = color;
   ctx.fillRect(plate.x, plate.y, plate.w, plate.h);
 
-  // Icon
-  ctx.fillStyle = '#000';
-  ctx.font = '8px Arial';
-  ctx.fillText('▼', plate.x + plate.w / 2 - 4, plate.y + 8);
+  ctx.font = 'bold 8px Arial';
+  if (plate.duo && plate.player) {
+    // Show which player owns this plate
+    const label = plate.player === 'p1' ? 'P1' : 'P2';
+    const playerColor = plate.player === 'p1' ? '#e74c3c' : '#3498db';
+    ctx.fillStyle = plate.active ? '#000' : playerColor;
+    ctx.fillText(label, plate.x + plate.w / 2 - 4, plate.y + 7);
+  } else {
+    ctx.fillStyle = '#000';
+    ctx.fillText('▼', plate.x + plate.w / 2 - 4, plate.y + 8);
+  }
 }
 
 function drawGoal(goal) {
@@ -200,9 +215,17 @@ function drawGoalPlate(plate) {
   if (!plate || plate.triggered) return;
   ctx.fillStyle = plate.active ? '#ffd700' : '#7a5200';
   ctx.fillRect(plate.x, plate.y, plate.w, plate.h);
-  ctx.fillStyle = '#fff';
-  ctx.font = '8px Arial';
-  ctx.fillText('🛸', plate.x + plate.w / 2 - 4, plate.y + 8);
+  ctx.font = 'bold 8px Arial';
+  if (plate.player) {
+    // Duo goal plate: show assigned player label
+    const label = plate.player === 'p1' ? 'P1' : 'P2';
+    const col   = plate.player === 'p1' ? '#e74c3c' : '#3498db';
+    ctx.fillStyle = plate.active ? '#000' : col;
+    ctx.fillText(label + '★', plate.x + plate.w / 2 - 7, plate.y + 7);
+  } else {
+    ctx.fillStyle = plate.active ? '#000' : '#fff';
+    ctx.fillText('★', plate.x + plate.w / 2 - 4, plate.y + 8);
+  }
 }
 
 function drawPlayer(p, pid) {
@@ -268,8 +291,12 @@ function render() {
     if (!plate.triggered) drawPressurePlate(plate);
   }
 
-  // Draw goal plate (gold star plate) — disappears when triggered
+  // Draw solo goal plate — disappears when triggered
   if (lvl.goal_plate && !lvl.goal_plate.triggered) drawGoalPlate(lvl.goal_plate);
+  // Draw duo goal plates — each disappears when triggered
+  for (const gp of (lvl.goal_plates || [])) {
+    if (!gp.triggered) drawGoalPlate(gp);
+  }
 
   // Draw goal door OR actual goal depending on lock state
   if (lvl.goal_locked) {
@@ -285,11 +312,17 @@ function render() {
   if (!lvl.doors_open) {
     ctx.fillStyle = '#ffffff88';
     ctx.font = '13px Segoe UI';
-    ctx.fillText('💡 Step on the brown plate to open the door!', 12, 24);
+    const doorHint = numPlayers >= 2
+      ? '💡 Both players must stand on the yellow plates at the same time!'
+      : '💡 Step on the yellow plate to open the door!';
+    ctx.fillText(doorHint, 12, 24);
   } else if (lvl.goal_locked) {
     ctx.fillStyle = '#ffffff88';
     ctx.font = '13px Segoe UI';
-    ctx.fillText('💡 Find the 🛸 plate to reveal the goal!', 12, 24);
+    const goalHint = numPlayers >= 2
+      ? '💡 Both players must stand on their ★ plate at the same time!'
+      : '💡 Find the 🛸 plate to reveal the goal!';
+    ctx.fillText(goalHint, 12, 24);
   }
 }
 
