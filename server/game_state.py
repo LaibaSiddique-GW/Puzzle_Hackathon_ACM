@@ -3,6 +3,7 @@ SPEED = 4
 JUMP_FORCE = -13
 PLAYER_W = 32
 PLAYER_H = 48
+STEP_HEIGHT = 10  # px; lets player walk up onto thin plates/platforms
 
 class Player:
     def __init__(self, pid, x, y, color):
@@ -15,10 +16,10 @@ class Player:
         self.color = color
 
 class GameState:
-    def __init__(self, session_id, num_players=1):
+    def __init__(self, session_id, num_players=1, level_num=1):
         self.session_id = session_id
         self.num_players = num_players
-        self.current_level = 1
+        self.current_level = level_num
         self.level = self.load_level(self.current_level)
         self.players = {}
         self._spawn_players()
@@ -53,10 +54,13 @@ class GameState:
 
     def update(self):
         for p in self.players.values():
-            p.vy += GRAVITY
+            p.vy = min(p.vy + GRAVITY, 20)  # gravity + terminal velocity cap
+            # X axis: move then resolve horizontal collisions
             p.x += p.vx
+            self._resolve_x(p)
+            # Y axis: move then resolve vertical collisions
             p.y += p.vy
-            self._resolve_collisions(p)
+            self._resolve_y(p)
 
         # Check if any player fell into a pit (below canvas)
         for p in self.players.values():
@@ -67,62 +71,94 @@ class GameState:
         # Update pressure plates
         self._update_pressure_plates()
 
-    def _resolve_collisions(self, p):
-        p.on_ground = False
+    def _get_solid_tiles(self):
+        """Returns all currently solid tiles for collision."""
         tiles = self.level['tiles'][:]
 
-        # Doors are solid until all plates are triggered
+        # Main doors: solid until all door plates triggered
         if not self._all_plates_active():
             for door in self.level.get('doors', []):
                 tiles.append(door)
 
-        # Pressure plates are solid until triggered (then disappear)
+        # Door pressure plates: solid until triggered
         for plate in self.level.get('pressure_plates', []):
             if not plate.get('triggered', False):
                 tiles.append(plate)
 
-        for tile in tiles:
+        # Goal plate: solid until triggered
+        goal_plate = self.level.get('goal_plate')
+        if goal_plate and not goal_plate.get('triggered', False):
+            tiles.append(goal_plate)
+
+        # Goal door: solid until goal plate triggered
+        if self.level.get('goal_locked', True):
+            goal_door = self.level.get('goal_door')
+            if goal_door:
+                tiles.append(goal_door)
+
+        return tiles
+
+    def _resolve_x(self, p):
+        """Resolve horizontal collisions only. Allows stepping up thin ledges."""
+        for tile in self._get_solid_tiles():
             tx, ty = tile['x'], tile['y']
             tw, th = tile['w'], tile['h']
+            if (p.x < tx + tw and p.x + PLAYER_W > tx and
+                    p.y < ty + th and p.y + PLAYER_H > ty):
+                # If feet barely clip the tile's top surface, let Y resolve it (step-up)
+                feet_overlap = (p.y + PLAYER_H) - ty
+                if 0 < feet_overlap <= STEP_HEIGHT:
+                    continue
+                if p.vx > 0:
+                    p.x = tx - PLAYER_W
+                elif p.vx < 0:
+                    p.x = tx + tw
 
-            overlap_x = (p.x < tx + tw) and (p.x + PLAYER_W > tx)
-            overlap_y = (p.y < ty + th) and (p.y + PLAYER_H > ty)
-
-            if overlap_x and overlap_y:
-                # Calculate overlap depths
-                from_left  = (tx + tw) - p.x
-                from_right = (p.x + PLAYER_W) - tx
-                from_top   = (ty + th) - p.y
-                from_bottom = (p.y + PLAYER_H) - ty
-
-                min_overlap = min(from_left, from_right, from_top, from_bottom)
-
-                if min_overlap == from_bottom and p.vy >= 0:
+    def _resolve_y(self, p):
+        """Resolve vertical collisions only. Prevents jumping through tile bottoms."""
+        p.on_ground = False
+        for tile in self._get_solid_tiles():
+            tx, ty = tile['x'], tile['y']
+            tw, th = tile['w'], tile['h']
+            if (p.x < tx + tw and p.x + PLAYER_W > tx and
+                    p.y < ty + th and p.y + PLAYER_H > ty):
+                if p.vy >= 0:    # falling / standing: land on top surface
                     p.y = ty - PLAYER_H
                     p.vy = 0
                     p.on_ground = True
-                elif min_overlap == from_top and p.vy < 0:
+                else:            # moving upward: blocked by underside
                     p.y = ty + th
                     p.vy = 0
-                elif min_overlap == from_left and p.vx > 0:
-                    p.x = tx - PLAYER_W
-                elif min_overlap == from_right and p.vx < 0:
-                    p.x = tx + tw
+
+    def _check_plate(self, plate):
+        """Returns True if any player is standing on the given plate."""
+        for p in self.players.values():
+            px_center = p.x + PLAYER_W / 2
+            py_bottom = p.y + PLAYER_H
+            in_x = plate['x'] <= px_center <= plate['x'] + plate['w']
+            on_top = abs(py_bottom - plate['y']) < 10
+            if in_x and on_top:
+                return True
+        return False
 
     def _update_pressure_plates(self):
-        plates = self.level.get('pressure_plates', [])
-        for plate in plates:
+        # Regular door plates
+        for plate in self.level.get('pressure_plates', []):
             if plate.get('triggered'):
-                continue  # permanently activated — skip
+                continue
             plate['active'] = False
-            for p in self.players.values():
-                px_center = p.x + PLAYER_W / 2
-                py_bottom = p.y + PLAYER_H
-                in_x = plate['x'] <= px_center <= plate['x'] + plate['w']
-                on_top = abs(py_bottom - plate['y']) < 8
-                if in_x and on_top:
-                    plate['triggered'] = True   # one-shot, permanent
-                    plate['active'] = True
+            if self._check_plate(plate):
+                plate['triggered'] = True
+                plate['active'] = True
+
+        # Special goal plate — reveals goal when triggered
+        goal_plate = self.level.get('goal_plate')
+        if goal_plate and not goal_plate.get('triggered', False):
+            goal_plate['active'] = False
+            if self._check_plate(goal_plate):
+                goal_plate['triggered'] = True
+                goal_plate['active'] = True
+                self.level['goal_locked'] = False
 
     def _all_plates_active(self):
         plates = self.level.get('pressure_plates', [])
@@ -131,6 +167,8 @@ class GameState:
         return all(plate.get('triggered', False) for plate in plates)
 
     def check_win(self):
+        if self.level.get('goal_locked', True):
+            return False
         goal = self.level['goal']
         return all(
             goal['x'] <= p.x + PLAYER_W / 2 <= goal['x'] + goal['w'] and
@@ -141,29 +179,58 @@ class GameState:
     def load_level(self, n):
         levels = {
             1: {
-                'spawns': [{'x': 80, 'y': 320}, {'x': 140, 'y': 320}],
+                'spawns': [{'x': 60, 'y': 320}, {'x': 120, 'y': 320}],
                 'tiles': [
                     # Left ground (spawn zone)
-                    {'x': 0,   'y': 400, 'w': 250, 'h': 20},
-                    # Right ground (middle zone + goal room, continuous)
-                    {'x': 350, 'y': 400, 'w': 450, 'h': 20},
-                    # Platforms in middle zone (only reachable after doors open)
-                    {'x': 420, 'y': 300, 'w': 100, 'h': 16},
-                    {'x': 580, 'y': 250, 'w': 100, 'h': 16},
+                    {'x': 0,   'y': 400, 'w': 310, 'h': 20},
+                    # Middle + goal room ground (continuous after door opens)
+                    {'x': 330, 'y': 400, 'w': 470, 'h': 20},
+                    # Platforms in middle zone
+                    {'x': 400, 'y': 310, 'w': 100, 'h': 16},
+                    {'x': 560, 'y': 255, 'w': 100, 'h': 16},
                     # Walls
                     {'x': 0,   'y': 0,   'w': 16,  'h': 420},
                     {'x': 784, 'y': 0,   'w': 16,  'h': 420},
                 ],
-                # Two full-height barriers — both vanish when plate is triggered
-                'doors': [
-                    {'x': 330, 'y': 0, 'w': 20, 'h': 420},  # gap wall
-                    {'x': 690, 'y': 0, 'w': 20, 'h': 420},  # goal room seal
-                ],
-                # Plate is on the LEFT (accessible from spawn without crossing any door)
+                'doors': [{'x': 310, 'y': 0, 'w': 20, 'h': 420}],
                 'pressure_plates': [
                     {'x': 180, 'y': 392, 'w': 60, 'h': 8, 'active': False, 'triggered': False}
                 ],
-                'goal': {'x': 715, 'y': 360, 'w': 55, 'h': 40},
+                'goal_plate': {'x': 490, 'y': 392, 'w': 60, 'h': 8, 'active': False, 'triggered': False},
+                'goal_door': {'x': 680, 'y': 0, 'w': 20, 'h': 420},
+                'goal_locked': True,
+                'goal': {'x': 712, 'y': 355, 'w': 55, 'h': 45},
+            },
+            2: {
+                # Level 2: plates are elevated on platforms — requires platforming to reach
+                'spawns': [{'x': 60, 'y': 320}, {'x': 110, 'y': 320}],
+                'tiles': [
+                    # Left ground
+                    {'x': 0,   'y': 400, 'w': 310, 'h': 20},
+                    # Left stepping platforms (staircase upward)
+                    {'x': 80,  'y': 320, 'w': 80,  'h': 16},
+                    {'x': 190, 'y': 240, 'w': 80,  'h': 16},
+                    # Right ground (after door)
+                    {'x': 330, 'y': 400, 'w': 470, 'h': 20},
+                    # Right platforms
+                    {'x': 380, 'y': 320, 'w': 80,  'h': 16},
+                    {'x': 510, 'y': 240, 'w': 80,  'h': 16},
+                    {'x': 620, 'y': 320, 'w': 80,  'h': 16},
+                    # Walls
+                    {'x': 0,   'y': 0,   'w': 16,  'h': 420},
+                    {'x': 784, 'y': 0,   'w': 16,  'h': 420},
+                ],
+                # Main barrier
+                'doors': [{'x': 310, 'y': 0, 'w': 20, 'h': 420}],
+                # Door plate on the upper-left platform — must jump up staircase to reach
+                'pressure_plates': [
+                    {'x': 200, 'y': 232, 'w': 60, 'h': 8, 'active': False, 'triggered': False}
+                ],
+                # Goal plate on elevated right platform — must jump up to reach
+                'goal_plate': {'x': 520, 'y': 232, 'w': 60, 'h': 8, 'active': False, 'triggered': False},
+                'goal_door': {'x': 690, 'y': 0, 'w': 20, 'h': 420},
+                'goal_locked': True,
+                'goal': {'x': 715, 'y': 355, 'w': 55, 'h': 45},
             }
         }
         return levels.get(n, levels[1])
@@ -183,7 +250,10 @@ class GameState:
                 'tiles': self.level['tiles'],
                 'doors': self.level.get('doors', []),
                 'pressure_plates': self.level.get('pressure_plates', []),
+                'goal_plate': self.level.get('goal_plate'),
+                'goal_door': self.level.get('goal_door'),
                 'goal': self.level['goal'],
+                'goal_locked': self.level.get('goal_locked', True),
                 'doors_open': self._all_plates_active()
             }
         }

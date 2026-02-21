@@ -41,12 +41,17 @@ def index():
 def solo_level_1():
     return render_template('solo_level_1.html')
 
+@app.route('/solo_level_2')
+def solo_level_2():
+    return render_template('solo_level_2.html')
+
 @app.route('/api/start_game', methods=['POST'])
 def start_game():
     data = request.get_json()
-    mode = data.get('mode', 1)  # 1 or 2 players
+    mode  = data.get('mode', 1)   # 1 or 2 players
+    level = data.get('level', 1)  # level number
     session_id = str(uuid.uuid4())[:8].upper()
-    sessions[session_id] = GameState(session_id, num_players=mode)
+    sessions[session_id] = GameState(session_id, num_players=mode, level_num=level)
     return jsonify({'session_id': session_id})
 
 @app.route('/api/input', methods=['POST'])
