@@ -1,3 +1,10 @@
+body {
+  min-height: 100vh;
+  margin: 0;
+  padding: 0;
+  background: url('planet_hopper_bg.jpg') center center/cover no-repeat, #0a0a23;
+  font-family: 'Segoe UI', Arial, sans-serif;
+}
 /* ── Reset & Base ── */
 *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
