@@ -1,0 +1,86 @@
+<!-- <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    
+</body>
+</html> -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Puzzle Platformer</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- MENU SCREEN -->
+  <div id="menu">
+    <h1>🧩 Puzzle Platformer</h1>
+    <p class="subtitle">Reach the goal — together or alone!</p>
+
+    <div class="mode-cards">
+
+      <div class="mode-card" id="card1p">
+        <div class="mode-icon">🟥</div>
+        <h2>1 Player</h2>
+        <p>Solo adventure.<br>Arrow Keys to move.</p>
+        <button onclick="startGame(1)">Play Solo</button>
+      </div>
+
+      <div class="mode-card" id="card2p">
+        <div class="mode-icon">🟥🟦</div>
+        <h2>2 Players</h2>
+        <p>Same keyboard co-op.<br>Work together!</p>
+        <button onclick="startGame(2)">Play Co-op</button>
+      </div>
+
+    </div>
+
+    <div id="controls-preview">
+      <div class="ctrl-block">
+        <span class="player-badge red">P1</span>
+        <span>Arrow Keys — Move &amp; Jump</span>
+      </div>
+      <div class="ctrl-block" id="ctrl-p2-hint">
+        <span class="player-badge blue">P2</span>
+        <span>W A S D — Move &amp; Jump</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- HUD (shown during game) -->
+  <div id="hud" style="display:none">
+    <div id="hud-left">
+      <span class="player-badge red">P1</span> ← → ↑
+      <span id="hud-p2-controls" style="display:none">
+        &nbsp;&nbsp;&nbsp;
+        <span class="player-badge blue">P2</span> A D W
+      </span>
+    </div>
+    <div id="hud-right">
+      <button id="restartBtn" onclick="returnToMenu()">↩ Menu</button>
+    </div>
+  </div>
+
+  <!-- GAME CANVAS -->
+  <canvas id="gameCanvas" width="800" height="450" style="display:none"></canvas>
+
+  <!-- WIN OVERLAY -->
+  <div id="winOverlay" style="display:none">
+    <div id="winBox">
+      <div class="win-star">⭐</div>
+      <h2>Level Complete!</h2>
+      <p>You reached the goal!</p>
+      <button onclick="returnToMenu()">🏠 Main Menu</button>
+    </div>
+  </div>
+
+  <script src="js/main.js"></script>
+</body>
+</html>

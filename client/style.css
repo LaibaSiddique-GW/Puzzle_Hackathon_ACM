@@ -1,0 +1,185 @@
+/* ── Reset & Base ── */
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  background: #0f0e17;
+  color: #fff;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ── Menu ── */
+#menu {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 28px;
+  animation: fadeIn 0.4s ease;
+}
+
+h1 {
+  font-size: 3rem;
+  color: #f1c40f;
+  text-shadow: 0 0 20px #f1c40f88;
+  letter-spacing: 2px;
+}
+
+.subtitle {
+  color: #aaa;
+  font-size: 1rem;
+  margin-top: -18px;
+}
+
+/* ── Mode Cards ── */
+.mode-cards {
+  display: flex;
+  gap: 24px;
+}
+
+.mode-card {
+  background: #1a1a2e;
+  border: 2px solid #2a2a4e;
+  border-radius: 16px;
+  padding: 28px 36px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  transition: border-color 0.2s, transform 0.2s;
+  min-width: 180px;
+}
+
+.mode-card:hover {
+  border-color: #4a90d9;
+  transform: translateY(-4px);
+}
+
+.mode-icon { font-size: 2.4rem; }
+
+.mode-card h2 { font-size: 1.3rem; color: #f1c40f; }
+
+.mode-card p  { font-size: 0.85rem; color: #aaa; line-height: 1.5; }
+
+.mode-card button {
+  margin-top: 6px;
+  background: #4a90d9;
+  color: #fff;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.mode-card button:hover { background: #357abd; }
+
+/* ── Controls Preview ── */
+#controls-preview {
+  display: flex;
+  gap: 24px;
+  font-size: 0.85rem;
+  color: #aaa;
+}
+
+.ctrl-block {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* ── Player Badges ── */
+.player-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-weight: bold;
+  font-size: 0.8rem;
+}
+
+.player-badge.red  { background: #e74c3c; color: #fff; }
+.player-badge.blue { background: #3498db; color: #fff; }
+
+/* ── HUD ── */
+#hud {
+  width: 800px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  background: #1a1a2e;
+  border-radius: 8px 8px 0 0;
+  font-size: 0.85rem;
+  color: #ccc;
+}
+
+#restartBtn {
+  background: #333;
+  color: #fff;
+  border: none;
+  padding: 6px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  transition: background 0.2s;
+}
+
+#restartBtn:hover { background: #555; }
+
+/* ── Canvas ── */
+#gameCanvas {
+  display: block;
+  border: 3px solid #2a2a4e;
+  border-top: none;
+  border-radius: 0 0 8px 8px;
+}
+
+/* ── Win Overlay ── */
+#winOverlay {
+  position: fixed;
+  inset: 0;
+  background: #000000aa;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
+  animation: fadeIn 0.3s ease;
+}
+
+#winBox {
+  background: #1a1a2e;
+  border: 2px solid #f1c40f;
+  border-radius: 20px;
+  padding: 48px 60px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.win-star  { font-size: 3rem; }
+#winBox h2 { font-size: 2rem; color: #f1c40f; }
+#winBox p  { color: #aaa; }
+#winBox button {
+  margin-top: 8px;
+  background: #f1c40f;
+  color: #0f0e17;
+  border: none;
+  padding: 12px 28px;
+  border-radius: 10px;
+  font-size: 1rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+#winBox button:hover { background: #d4ac0d; }
+
+/* ── Animations ── */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
