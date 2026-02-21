@@ -37,9 +37,8 @@ async function startGame(mode) {
   document.getElementById('hud-p2-controls').style.display =
     mode === 2 ? 'inline' : 'none';
 
-  document.getElementById('menu').style.display      = 'none';
-  document.getElementById('hud').style.display       = 'flex';
-  canvas.style.display                               = 'block';
+  document.getElementById('hud').style.display        = 'flex';
+  canvas.style.display                                = 'block';
   document.getElementById('winOverlay').style.display = 'none';
 
   won     = false;
@@ -52,12 +51,15 @@ function returnToMenu() {
   sessionId = null;
   gameState = null;
   won       = false;
-
-  document.getElementById('menu').style.display       = 'flex';
-  document.getElementById('hud').style.display        = 'none';
-  canvas.style.display                                = 'none';
-  document.getElementById('winOverlay').style.display = 'none';
+  window.location.href = '/';
 }
+
+// ── Auto-start from URL param ───────────────────────────────────────────────
+window.addEventListener('DOMContentLoaded', () => {
+  const params = new URLSearchParams(window.location.search);
+  const mode   = parseInt(params.get('mode')) || 1;
+  startGame(mode);
+});
 
 // ── Input Sampling ─────────────────────────────────────────────────────────
 function buildInputPayload() {
@@ -214,25 +216,20 @@ function render() {
   // Draw normal tiles
   for (const tile of lvl.tiles) drawTile(tile);
 
-  // Draw door (purple if closed, faded if open)
+  // Draw doors only when closed — disappear entirely when triggered
   if (!lvl.doors_open) {
     for (const door of (lvl.doors || [])) {
       drawTile(door, DOOR_COLOR, '#5b2c6f');
       ctx.fillStyle = '#fff';
-      ctx.font = '10px Arial';
-      ctx.fillText('🔒', door.x + 2, door.y + door.h / 2 + 4);
-    }
-  } else {
-    // Door is open — draw faint outline
-    for (const door of (lvl.doors || [])) {
-      ctx.strokeStyle = '#2ecc7155';
-      ctx.lineWidth   = 2;
-      ctx.strokeRect(door.x, door.y, door.w, door.h);
+      ctx.font = 'bold 18px Arial';
+      ctx.fillText('🔒', door.x + 1, door.y + door.h / 2 + 6);
     }
   }
 
-  // Draw pressure plates
-  for (const plate of (lvl.pressure_plates || [])) drawPressurePlate(plate);
+  // Draw pressure plates — skip ones already triggered (they disappear)
+  for (const plate of (lvl.pressure_plates || [])) {
+    if (!plate.triggered) drawPressurePlate(plate);
+  }
 
   // Draw goal
   drawGoal(lvl.goal);
@@ -241,14 +238,10 @@ function render() {
   for (const [pid, p] of Object.entries(gameState.players)) drawPlayer(p, pid);
 
   // Puzzle hint text
-  if (!(lvl.doors_open) && numPlayers === 2) {
+  if (!lvl.doors_open) {
     ctx.fillStyle = '#ffffff88';
     ctx.font = '13px Segoe UI';
-    ctx.fillText('💡 P2: Stand on the yellow plate to open the door!', 12, 24);
-  } else if (!(lvl.doors_open) && numPlayers === 1) {
-    ctx.fillStyle = '#ffffff88';
-    ctx.font = '13px Segoe UI';
-    ctx.fillText('💡 Stand on the yellow plate to open the door!', 12, 24);
+    ctx.fillText('💡 Step on the yellow plate to open the doors!', 12, 24);
   }
 }
 

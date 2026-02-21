@@ -71,12 +71,15 @@ class GameState:
         p.on_ground = False
         tiles = self.level['tiles'][:]
 
-        # Add door tiles only if all pressure plates are active
-        if self._all_plates_active():
-            pass  # doors are open, skip adding them
-        else:
+        # Doors are solid until all plates are triggered
+        if not self._all_plates_active():
             for door in self.level.get('doors', []):
                 tiles.append(door)
+
+        # Pressure plates are solid until triggered (then disappear)
+        for plate in self.level.get('pressure_plates', []):
+            if not plate.get('triggered', False):
+                tiles.append(plate)
 
         for tile in tiles:
             tx, ty = tile['x'], tile['y']
@@ -109,6 +112,8 @@ class GameState:
     def _update_pressure_plates(self):
         plates = self.level.get('pressure_plates', [])
         for plate in plates:
+            if plate.get('triggered'):
+                continue  # permanently activated — skip
             plate['active'] = False
             for p in self.players.values():
                 px_center = p.x + PLAYER_W / 2
@@ -116,13 +121,14 @@ class GameState:
                 in_x = plate['x'] <= px_center <= plate['x'] + plate['w']
                 on_top = abs(py_bottom - plate['y']) < 8
                 if in_x and on_top:
+                    plate['triggered'] = True   # one-shot, permanent
                     plate['active'] = True
 
     def _all_plates_active(self):
         plates = self.level.get('pressure_plates', [])
         if not plates:
             return True
-        return all(plate.get('active', False) for plate in plates)
+        return all(plate.get('triggered', False) for plate in plates)
 
     def check_win(self):
         goal = self.level['goal']
@@ -137,26 +143,27 @@ class GameState:
             1: {
                 'spawns': [{'x': 80, 'y': 320}, {'x': 140, 'y': 320}],
                 'tiles': [
-                    # Ground
+                    # Left ground (spawn zone)
                     {'x': 0,   'y': 400, 'w': 250, 'h': 20},
+                    # Right ground (middle zone + goal room, continuous)
                     {'x': 350, 'y': 400, 'w': 450, 'h': 20},
-                    # Floating platforms
-                    {'x': 220, 'y': 310, 'w': 100, 'h': 16},
-                    {'x': 450, 'y': 300, 'w': 100, 'h': 16},
-                    {'x': 620, 'y': 250, 'w': 120, 'h': 16},
+                    # Platforms in middle zone (only reachable after doors open)
+                    {'x': 420, 'y': 300, 'w': 100, 'h': 16},
+                    {'x': 580, 'y': 250, 'w': 100, 'h': 16},
                     # Walls
                     {'x': 0,   'y': 0,   'w': 16,  'h': 420},
                     {'x': 784, 'y': 0,   'w': 16,  'h': 420},
                 ],
-                # Door: only opens when pressure plate is active
+                # Two full-height barriers — both vanish when plate is triggered
                 'doors': [
-                    {'x': 330, 'y': 310, 'w': 20, 'h': 100}
+                    {'x': 330, 'y': 0, 'w': 20, 'h': 420},  # gap wall
+                    {'x': 690, 'y': 0, 'w': 20, 'h': 420},  # goal room seal
                 ],
-                # Pressure plate: p2 must stand here to open door for p1
+                # Plate is on the LEFT (accessible from spawn without crossing any door)
                 'pressure_plates': [
-                    {'x': 460, 'y': 392, 'w': 60, 'h': 8, 'active': False}
+                    {'x': 180, 'y': 392, 'w': 60, 'h': 8, 'active': False, 'triggered': False}
                 ],
-                'goal': {'x': 700, 'y': 360, 'w': 60, 'h': 40},
+                'goal': {'x': 715, 'y': 360, 'w': 55, 'h': 40},
             }
         }
         return levels.get(n, levels[1])
