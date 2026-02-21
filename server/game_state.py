@@ -85,12 +85,17 @@ class GameState:
             if not plate.get('triggered', False):
                 tiles.append(plate)
 
-        # Goal plate: solid until triggered
+        # Goal plate: solid until triggered (solo mode)
         goal_plate = self.level.get('goal_plate')
         if goal_plate and not goal_plate.get('triggered', False):
             tiles.append(goal_plate)
 
-        # Goal door: solid until goal plate triggered
+        # Duo goal plates: each solid until triggered
+        for gp in self.level.get('goal_plates', []):
+            if not gp.get('triggered', False):
+                tiles.append(gp)
+
+        # Goal door: solid until goal plate(s) triggered
         if self.level.get('goal_locked', True):
             goal_door = self.level.get('goal_door')
             if goal_door:
@@ -133,25 +138,46 @@ class GameState:
     def _check_plate(self, plate):
         """Returns True if any player is standing on the given plate."""
         for p in self.players.values():
-            px_center = p.x + PLAYER_W / 2
-            py_bottom = p.y + PLAYER_H
-            in_x = plate['x'] <= px_center <= plate['x'] + plate['w']
-            on_top = abs(py_bottom - plate['y']) < 10
-            if in_x and on_top:
+            if self._player_on_plate(p, plate):
                 return True
         return False
 
+    def _player_on_plate(self, player, plate):
+        """Returns True if a specific player object is standing on the plate."""
+        px_center = player.x + PLAYER_W / 2
+        py_bottom = player.y + PLAYER_H
+        in_x  = plate['x'] <= px_center <= plate['x'] + plate['w']
+        on_top = abs(py_bottom - plate['y']) < 10
+        return in_x and on_top
+
     def _update_pressure_plates(self):
-        # Regular door plates
-        for plate in self.level.get('pressure_plates', []):
-            if plate.get('triggered'):
-                continue
+        plates = self.level.get('pressure_plates', [])
+        duo_plates  = [pl for pl in plates if pl.get('duo')  and not pl.get('triggered')]
+        solo_plates = [pl for pl in plates if not pl.get('duo') and not pl.get('triggered')]
+
+        # Solo door plates: one-shot on first contact by any player
+        for plate in solo_plates:
             plate['active'] = False
             if self._check_plate(plate):
                 plate['triggered'] = True
                 plate['active'] = True
 
-        # Special goal plate — reveals goal when triggered
+        # Duo door plates: each plate has a 'player' field (e.g. 'p1' or 'p2').
+        # It only becomes active when THAT specific player is standing on it.
+        for plate in duo_plates:
+            assigned_pid = plate.get('player')   # e.g. 'p1' or 'p2'
+            player_obj   = self.players.get(assigned_pid)
+            if player_obj and self._player_on_plate(player_obj, plate):
+                plate['active'] = True
+            else:
+                plate['active'] = False
+
+        # Open the door permanently only when ALL duo plates are active simultaneously
+        if duo_plates and all(pl['active'] for pl in duo_plates):
+            for plate in duo_plates:
+                plate['triggered'] = True
+
+        # Solo goal plate — any player triggers alone
         goal_plate = self.level.get('goal_plate')
         if goal_plate and not goal_plate.get('triggered', False):
             goal_plate['active'] = False
@@ -159,6 +185,18 @@ class GameState:
                 goal_plate['triggered'] = True
                 goal_plate['active'] = True
                 self.level['goal_locked'] = False
+
+        # Duo goal plates — each assigned to a specific player;
+        # BOTH must stand on their plate simultaneously to unlock the goal
+        goal_plates = self.level.get('goal_plates', [])
+        untriggered_gps = [gp for gp in goal_plates if not gp.get('triggered')]
+        for gp in untriggered_gps:
+            player_obj = self.players.get(gp.get('player'))
+            gp['active'] = bool(player_obj and self._player_on_plate(player_obj, gp))
+        if untriggered_gps and all(gp['active'] for gp in untriggered_gps):
+            for gp in untriggered_gps:
+                gp['triggered'] = True
+            self.level['goal_locked'] = False
 
     def _all_plates_active(self):
         plates = self.level.get('pressure_plates', [])
@@ -177,18 +215,19 @@ class GameState:
         )
 
     def load_level(self, n):
+        if self.num_players >= 2:
+            return self._load_duo_level(n)
+        return self._load_solo_level(n)
+
+    def _load_solo_level(self, n):
         levels = {
             1: {
                 'spawns': [{'x': 60, 'y': 320}, {'x': 120, 'y': 320}],
                 'tiles': [
-                    # Left ground (spawn zone)
                     {'x': 0,   'y': 400, 'w': 250, 'h': 20},
-                    # Middle + goal room ground (continuous after door opens)
                     {'x': 330, 'y': 400, 'w': 470, 'h': 20},
-                    # Platforms in middle zone
                     {'x': 400, 'y': 310, 'w': 100, 'h': 16},
                     {'x': 560, 'y': 255, 'w': 100, 'h': 16},
-                    # Walls
                     {'x': 0,   'y': 0,   'w': 16,  'h': 420},
                     {'x': 784, 'y': 0,   'w': 16,  'h': 420},
                 ],
@@ -196,7 +235,7 @@ class GameState:
                 'pressure_plates': [
                     {'x': 180, 'y': 392, 'w': 60, 'h': 8, 'active': False, 'triggered': False}
                 ],
-                'goal_plate': {'x': 490, 'y': 392, 'w': 60, 'h': 8, 'active': False, 'triggered': False},
+                'goal_plate': {'x': 580, 'y': 247, 'w': 60, 'h': 8, 'active': False, 'triggered': False},
                 'goal_door': {'x': 680, 'y': 0, 'w': 20, 'h': 420},
                 'goal_locked': True,
                 'goal': {'x': 712, 'y': 355, 'w': 55, 'h': 45},
@@ -236,6 +275,93 @@ class GameState:
         }
         return levels.get(n, levels[1])
 
+    def _load_duo_level(self, n):
+        # All duo plates assigned per-player; doors/goal only open when BOTH
+        # assigned players stand on their plates simultaneously.
+        levels = {
+            1: {
+                # Both players spawn together center-left
+                'spawns': [{'x': 100, 'y': 350}, {'x': 145, 'y': 350}],
+                'tiles': [
+                    # Left ground
+                    {'x': 0,   'y': 400, 'w': 300, 'h': 20},
+                    # P1 door platform (left) — P1 jumps up here
+                    {'x': 28,  'y': 295, 'w': 100, 'h': 16},
+                    # P2 door platform (right of left zone) — P2 jumps up here
+                    {'x': 183, 'y': 295, 'w': 100, 'h': 16},
+                    # Right ground
+                    {'x': 335, 'y': 400, 'w': 450, 'h': 20},
+                    # P1 goal platform (mid-left)
+                    {'x': 375, 'y': 310, 'w': 100, 'h': 16},
+                    # P2 goal platform (mid-upper)
+                    {'x': 530, 'y': 245, 'w': 100, 'h': 16},
+                    # Landing platform near goal room
+                    {'x': 655, 'y': 310, 'w': 90,  'h': 16},
+                    # Walls
+                    {'x': 0,   'y': 0,   'w': 16,  'h': 420},
+                    {'x': 784, 'y': 0,   'w': 16,  'h': 420},
+                ],
+                'doors': [{'x': 315, 'y': 0, 'w': 20, 'h': 420}],
+                # P1 door plate on left platform; P2 door plate on right platform
+                'pressure_plates': [
+                    {'x': 38,  'y': 287, 'w': 70, 'h': 8, 'active': False, 'triggered': False, 'duo': True, 'player': 'p1'},
+                    {'x': 193, 'y': 287, 'w': 70, 'h': 8, 'active': False, 'triggered': False, 'duo': True, 'player': 'p2'},
+                ],
+                # P1 star plate on mid-left platform; P2 star plate on mid-upper platform
+                'goal_plates': [
+                    {'x': 385, 'y': 302, 'w': 70, 'h': 8, 'active': False, 'triggered': False, 'duo': True, 'player': 'p1'},
+                    {'x': 540, 'y': 237, 'w': 70, 'h': 8, 'active': False, 'triggered': False, 'duo': True, 'player': 'p2'},
+                ],
+                'goal_door':  {'x': 700, 'y': 0, 'w': 20, 'h': 420},
+                'goal_locked': True,
+                'goal': {'x': 722, 'y': 355, 'w': 55, 'h': 45},
+            },
+            2: {
+                # Level 2 — split staircase: each player climbs their own tower
+                'spawns': [{'x': 100, 'y': 350}, {'x': 145, 'y': 350}],
+                'tiles': [
+                    # Left ground
+                    {'x': 0,   'y': 400, 'w': 280, 'h': 20},
+                    # Shared first step (both can use)
+                    {'x': 65,  'y': 330, 'w': 170, 'h': 16},
+                    # P1 tower (left branch, two steps)
+                    # {'x': 16,  'y': 255, 'w': 90,  'h': 16},
+                    {'x': 16,  'y': 175, 'w': 90,  'h': 16},
+                    # P2 tower (right branch, two steps)
+                    {'x': 200, 'y': 255, 'w': 90,  'h': 16},
+                    {'x': 210, 'y': 175, 'w': 90,  'h': 16},
+                    # Right ground
+                    {'x': 335, 'y': 400, 'w': 455, 'h': 20},
+                    # Right landing step
+                    {'x': 365, 'y': 330, 'w': 90,  'h': 16},
+                    # P1 goal tower (right zone)
+                    {'x': 460, 'y': 275, 'w': 90,  'h': 16},
+                    {'x': 460, 'y': 175, 'w': 90,  'h': 16},
+                    # P2 goal tower (further right)
+                    # {'x': 570, 'y': 255, 'w': 90,  'h': 16},
+                    {'x': 570, 'y': 230, 'w': 90,  'h': 16},
+                    # Walls
+                    {'x': 0,   'y': 0,   'w': 16,  'h': 420},
+                    {'x': 784, 'y': 0,   'w': 16,  'h': 420},
+                ],
+                'doors': [{'x': 315, 'y': 0, 'w': 20, 'h': 420}],
+                # P1 door plate on top of P1 left tower; P2 door plate on top of P2 left tower
+                'pressure_plates': [
+                    {'x': 25,  'y': 167, 'w': 70, 'h': 8, 'active': False, 'triggered': False, 'duo': True, 'player': 'p1'},
+                    {'x': 220, 'y': 167, 'w': 70, 'h': 8, 'active': False, 'triggered': False, 'duo': True, 'player': 'p2'},
+                ],
+                # P1 star plate on top of P1 right tower; P2 star plate on top of P2 right tower
+                'goal_plates': [
+                    {'x': 469, 'y': 167, 'w': 70, 'h': 8, 'active': False, 'triggered': False, 'duo': True, 'player': 'p1'},
+                    {'x': 579, 'y': 222, 'w': 70, 'h': 8, 'active': False, 'triggered': False, 'duo': True, 'player': 'p2'},
+                ],
+                'goal_door':  {'x': 700, 'y': 0, 'w': 20, 'h': 420},
+                'goal_locked': True,
+                'goal': {'x': 722, 'y': 355, 'w': 55, 'h': 45},
+            }
+        }
+        return levels.get(n, levels[1])
+
     def serialize(self):
         return {
             'players': {
@@ -250,8 +376,12 @@ class GameState:
             'level': {
                 'tiles': self.level['tiles'],
                 'doors': self.level.get('doors', []),
-                'pressure_plates': self.level.get('pressure_plates', []),
+                'pressure_plates': [
+                    {**pl, 'player': pl.get('player'), 'duo': pl.get('duo', False)}
+                    for pl in self.level.get('pressure_plates', [])
+                ],
                 'goal_plate': self.level.get('goal_plate'),
+                'goal_plates': self.level.get('goal_plates', []),
                 'goal_door': self.level.get('goal_door'),
                 'goal': self.level['goal'],
                 'goal_locked': self.level.get('goal_locked', True),
