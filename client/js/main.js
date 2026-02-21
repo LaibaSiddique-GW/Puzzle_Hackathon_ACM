@@ -24,6 +24,8 @@ document.addEventListener('keyup',   e => { keys[e.code] = false; });
 // ── Game Start / Menu ──────────────────────────────────────────────────────
 async function startGame(mode, level = 1) {
   numPlayers = mode;
+  // Mark that the user has played at least once
+  localStorage.setItem('hasPlayed', 'true');
 
   const res  = await fetch('/api/start_game', {
     method:  'POST',
@@ -175,7 +177,7 @@ function drawGoal(goal) {
   // Star label
   ctx.fillStyle = '#fff';
   ctx.font = 'bold 20px Arial';
-  ctx.fillText('★', goal.x + goal.w / 2 - 10, goal.y + goal.h / 2 + 8);
+  ctx.fillText('🛸', goal.x + goal.w / 2 - 10, goal.y + goal.h / 2 + 8);
 }
 
 function drawGoalDoor(door) {
@@ -190,7 +192,7 @@ function drawGoalDoor(door) {
   ctx.fillStyle = '#fff';
   ctx.font = 'bold 13px Arial';
   for (let iy = door.y + 20; iy < door.y + door.h - 10; iy += 36) {
-    ctx.fillText('⭐', door.x + 1, iy);
+    ctx.fillText('🛸', door.x + 1, iy);
   }
 }
 
@@ -200,7 +202,7 @@ function drawGoalPlate(plate) {
   ctx.fillRect(plate.x, plate.y, plate.w, plate.h);
   ctx.fillStyle = '#fff';
   ctx.font = '8px Arial';
-  ctx.fillText('★', plate.x + plate.w / 2 - 4, plate.y + 8);
+  ctx.fillText('🛸', plate.x + plate.w / 2 - 4, plate.y + 8);
 }
 
 function drawPlayer(p, pid) {
@@ -261,7 +263,7 @@ function render() {
     }
   }
 
-  // Draw door pressure plates (yellow) — disappear when triggered
+  // Draw door pressure plates (brown) — disappear when triggered
   for (const plate of (lvl.pressure_plates || [])) {
     if (!plate.triggered) drawPressurePlate(plate);
   }
@@ -283,11 +285,11 @@ function render() {
   if (!lvl.doors_open) {
     ctx.fillStyle = '#ffffff88';
     ctx.font = '13px Segoe UI';
-    ctx.fillText('💡 Step on the yellow plate to open the door!', 12, 24);
+    ctx.fillText('💡 Step on the brown plate to open the door!', 12, 24);
   } else if (lvl.goal_locked) {
     ctx.fillStyle = '#ffffff88';
     ctx.font = '13px Segoe UI';
-    ctx.fillText('💡 Find the ⭐ plate to reveal the goal!', 12, 24);
+    ctx.fillText('💡 Find the 🛸 plate to reveal the goal!', 12, 24);
   }
 }
 
