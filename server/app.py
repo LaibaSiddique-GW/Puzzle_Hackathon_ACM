@@ -27,7 +27,7 @@ from flask_socketio import SocketIO, emit, join_room
 from game_state import GameState
 import uuid
 
-app = Flask(__name__, static_folder='../client', template_folder='../client')
+app = Flask(__name__, static_folder='../client', static_url_path='', template_folder='../client')
 app.config['SECRET_KEY'] = 'secret!'
 socketio = SocketIO(app, cors_allowed_origins="*")
 
@@ -37,12 +37,21 @@ sessions = {}  # session_id -> GameState
 def index():
     return render_template('index.html')
 
+@app.route('/solo_level_1')
+def solo_level_1():
+    return render_template('solo_level_1.html')
+
+@app.route('/solo_level_2')
+def solo_level_2():
+    return render_template('solo_level_2.html')
+
 @app.route('/api/start_game', methods=['POST'])
 def start_game():
     data = request.get_json()
-    mode = data.get('mode', 1)  # 1 or 2 players
+    mode  = data.get('mode', 1)   # 1 or 2 players
+    level = data.get('level', 1)  # level number
     session_id = str(uuid.uuid4())[:8].upper()
-    sessions[session_id] = GameState(session_id, num_players=mode)
+    sessions[session_id] = GameState(session_id, num_players=mode, level_num=level)
     return jsonify({'session_id': session_id})
 
 @app.route('/api/input', methods=['POST'])

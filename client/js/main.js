@@ -22,13 +22,13 @@ document.addEventListener('keydown', e => { keys[e.code] = true;  });
 document.addEventListener('keyup',   e => { keys[e.code] = false; });
 
 // ── Game Start / Menu ──────────────────────────────────────────────────────
-async function startGame(mode) {
+async function startGame(mode, level = 1) {
   numPlayers = mode;
 
   const res  = await fetch('/api/start_game', {
     method:  'POST',
     headers: { 'Content-Type': 'application/json' },
-    body:    JSON.stringify({ mode })
+    body:    JSON.stringify({ mode, level })
   });
   const data = await res.json();
   sessionId  = data.session_id;
@@ -37,9 +37,8 @@ async function startGame(mode) {
   document.getElementById('hud-p2-controls').style.display =
     mode === 2 ? 'inline' : 'none';
 
-  document.getElementById('menu').style.display      = 'none';
-  document.getElementById('hud').style.display       = 'flex';
-  canvas.style.display                               = 'block';
+  document.getElementById('hud').style.display        = 'flex';
+  canvas.style.display                                = 'block';
   document.getElementById('winOverlay').style.display = 'none';
 
   won     = false;
@@ -52,12 +51,24 @@ function returnToMenu() {
   sessionId = null;
   gameState = null;
   won       = false;
-
-  document.getElementById('menu').style.display       = 'flex';
-  document.getElementById('hud').style.display        = 'none';
-  canvas.style.display                                = 'none';
-  document.getElementById('winOverlay').style.display = 'none';
+  window.location.href = '/';
 }
+
+function goToSoloLevel2() {
+  running   = false;
+  sessionId = null;
+  gameState = null;
+  won       = false;
+  window.location.href = '/solo_level_2?mode=1&level=2';
+}
+
+// ── Auto-start from URL param ───────────────────────────────────────────────
+window.addEventListener('DOMContentLoaded', () => {
+  const params = new URLSearchParams(window.location.search);
+  const mode   = parseInt(params.get('mode'))  || 1;
+  const level  = parseInt(params.get('level')) || 1;
+  startGame(mode, level);
+});
 
 // ── Input Sampling ─────────────────────────────────────────────────────────
 function buildInputPayload() {
@@ -106,6 +117,7 @@ const TILE_SHADOW         = '#2a5fa8';
 const PLATE_INACTIVE      = '#8e6b00';
 const PLATE_ACTIVE        = '#f1c40f';
 const DOOR_COLOR          = '#8e44ad';
+const GOAL_DOOR_COLOR     = '#c0860a';
 const GOAL_COLOR          = '#2ecc71';
 const BG_COLOR            = '#0f0e17';
 const GRID_COLOR          = '#ffffff08';
@@ -166,6 +178,31 @@ function drawGoal(goal) {
   ctx.fillText('★', goal.x + goal.w / 2 - 10, goal.y + goal.h / 2 + 8);
 }
 
+function drawGoalDoor(door) {
+  if (!door) return;
+  // Dark gold shadow strip
+  ctx.fillStyle = '#7a5200';
+  ctx.fillRect(door.x, door.y + door.h - 6, door.w, 6);
+  // Gold body
+  ctx.fillStyle = GOAL_DOOR_COLOR;
+  ctx.fillRect(door.x, door.y, door.w, door.h - 6);
+  // Repeating star icons down the barrier
+  ctx.fillStyle = '#fff';
+  ctx.font = 'bold 13px Arial';
+  for (let iy = door.y + 20; iy < door.y + door.h - 10; iy += 36) {
+    ctx.fillText('⭐', door.x + 1, iy);
+  }
+}
+
+function drawGoalPlate(plate) {
+  if (!plate || plate.triggered) return;
+  ctx.fillStyle = plate.active ? '#ffd700' : '#7a5200';
+  ctx.fillRect(plate.x, plate.y, plate.w, plate.h);
+  ctx.fillStyle = '#fff';
+  ctx.font = '8px Arial';
+  ctx.fillText('★', plate.x + plate.w / 2 - 4, plate.y + 8);
+}
+
 function drawPlayer(p, pid) {
   const PLAYER_W = 32;
   const PLAYER_H = 48;
@@ -214,41 +251,43 @@ function render() {
   // Draw normal tiles
   for (const tile of lvl.tiles) drawTile(tile);
 
-  // Draw door (purple if closed, faded if open)
+  // Draw doors only when closed — disappear entirely when triggered
   if (!lvl.doors_open) {
     for (const door of (lvl.doors || [])) {
       drawTile(door, DOOR_COLOR, '#5b2c6f');
       ctx.fillStyle = '#fff';
-      ctx.font = '10px Arial';
-      ctx.fillText('🔒', door.x + 2, door.y + door.h / 2 + 4);
-    }
-  } else {
-    // Door is open — draw faint outline
-    for (const door of (lvl.doors || [])) {
-      ctx.strokeStyle = '#2ecc7155';
-      ctx.lineWidth   = 2;
-      ctx.strokeRect(door.x, door.y, door.w, door.h);
+      ctx.font = 'bold 18px Arial';
+      ctx.fillText('🔒', door.x + 1, door.y + door.h / 2 + 6);
     }
   }
 
-  // Draw pressure plates
-  for (const plate of (lvl.pressure_plates || [])) drawPressurePlate(plate);
+  // Draw door pressure plates (yellow) — disappear when triggered
+  for (const plate of (lvl.pressure_plates || [])) {
+    if (!plate.triggered) drawPressurePlate(plate);
+  }
 
-  // Draw goal
-  drawGoal(lvl.goal);
+  // Draw goal plate (gold star plate) — disappears when triggered
+  if (lvl.goal_plate && !lvl.goal_plate.triggered) drawGoalPlate(lvl.goal_plate);
+
+  // Draw goal door OR actual goal depending on lock state
+  if (lvl.goal_locked) {
+    drawGoalDoor(lvl.goal_door);
+  } else {
+    drawGoal(lvl.goal);
+  }
 
   // Draw players
   for (const [pid, p] of Object.entries(gameState.players)) drawPlayer(p, pid);
 
-  // Puzzle hint text
-  if (!(lvl.doors_open) && numPlayers === 2) {
+  // Contextual hint text
+  if (!lvl.doors_open) {
     ctx.fillStyle = '#ffffff88';
     ctx.font = '13px Segoe UI';
-    ctx.fillText('💡 P2: Stand on the yellow plate to open the door!', 12, 24);
-  } else if (!(lvl.doors_open) && numPlayers === 1) {
+    ctx.fillText('💡 Step on the yellow plate to open the door!', 12, 24);
+  } else if (lvl.goal_locked) {
     ctx.fillStyle = '#ffffff88';
     ctx.font = '13px Segoe UI';
-    ctx.fillText('💡 Stand on the yellow plate to open the door!', 12, 24);
+    ctx.fillText('💡 Find the ⭐ plate to reveal the goal!', 12, 24);
   }
 }
 

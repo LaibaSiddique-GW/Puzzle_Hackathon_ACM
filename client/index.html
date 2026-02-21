@@ -17,14 +17,14 @@
         <div class="mode-icon">🟨</div>
         <h2>1 Player</h2>
         <p>Solo adventure.<br>Arrow Keys to move.</p>
-        <button class="start-btn" onclick="startGame(1)">Play Solo</button>
+        <button class="start-btn" onclick="window.location.href='/solo_level_1?mode=1'">Play Solo</button>
       </div>
       <div class="mode-card" id="card2p">
         <div class="mode-icon">🟪🟨</div>
         
         <h2>2 Players</h2>
         <p>Same keyboard with a partner.<br>Work together!</p>
-        <button class="start-btn" onclick="startGame(2)">Play in a Duo</button>
+        <button class="start-btn" onclick="window.location.href='/solo_level_1?mode=2'">Play in a Duo</button>
       </div>
     </div>
     <div id="controls-preview">
@@ -39,33 +39,6 @@
     </div>
   </div>
 
-  <!-- HUD (shown during game) -->
-  <div id="hud" style="display:none">
-    <div id="hud-left">
-      <span class="player-badge red">P1</span> ← → ↑
-      <span id="hud-p2-controls" style="display:none">
-        &nbsp;&nbsp;&nbsp;
-        <span class="player-badge blue">P2</span> A D W
-      </span>
-    </div>
-    <div id="hud-right">
-      <button id="restartBtn" onclick="returnToMenu()">↩ Menu</button>
-    </div>
-  </div>
 
-  <!-- GAME CANVAS -->
-  <canvas id="gameCanvas" width="800" height="450" style="display:none"></canvas>
-
-  <!-- WIN OVERLAY -->
-  <div id="winOverlay" style="display:none">
-    <div id="winBox">
-      <div class="win-star">⭐</div>
-      <h2>Level Complete!</h2>
-      <p>You reached the goal!</p>
-      <button onclick="returnToMenu()">Menu</button>
-    </div>
-  </div>
-
-  <script src="js/main.js"></script>
 </body>
 </html>
