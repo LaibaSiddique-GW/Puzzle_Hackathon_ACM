@@ -64,4 +64,9 @@ def handle_input():
     return jsonify(result)
 
 if __name__ == '__main__':
-    socketio.run(app, debug=True)
+    socketio.run(app, host='0.0.0.0', port=8080, debug=True)
+
+#  Add page for choosing single or multiplayer mode, and then redirect to game page with session id in URL.
+# @app.route('/choose_mode')
+# def choose_mode():
+#     return render_template('choose_mode.html')
