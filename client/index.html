@@ -14,34 +14,30 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Puzzle Platformer</title>
+  <title>Puzzle-Up</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-  <!-- MENU SCREEN -->
-  <div id="menu">
-    <h1>🧩 Puzzle Platformer</h1>
-    <p class="subtitle">Reach the goal — together or alone!</p>
-
+  <!-- GAME ENTRY BOX -->
+  <div class="game-entry-box">
+    <h1>🧩 Puzzle-Up</h1>
+    <p>Have Fun and Explore our Universe, together or alone!<br><br>
+      Choose your mode to begin:</p>
     <div class="mode-cards">
-
       <div class="mode-card" id="card1p">
         <div class="mode-icon">🟥</div>
         <h2>1 Player</h2>
         <p>Solo adventure.<br>Arrow Keys to move.</p>
-        <button onclick="startGame(1)">Play Solo</button>
+        <button class="start-btn" onclick="startGame(1)">Play Solo</button>
       </div>
-
       <div class="mode-card" id="card2p">
         <div class="mode-icon">🟥🟦</div>
         <h2>2 Players</h2>
-        <p>Same keyboard co-op.<br>Work together!</p>
-        <button onclick="startGame(2)">Play Co-op</button>
+        <p>Same keyboard with a partner.<br>Work together!</p>
+        <button class="start-btn" onclick="startGame(2)">Play in a Duo</button>
       </div>
-
     </div>
-
     <div id="controls-preview">
       <div class="ctrl-block">
         <span class="player-badge red">P1</span>
@@ -77,7 +73,7 @@
       <div class="win-star">⭐</div>
       <h2>Level Complete!</h2>
       <p>You reached the goal!</p>
-      <button onclick="returnToMenu()">🏠 Main Menu</button>
+      <button onclick="returnToMenu()">Menu</button>
     </div>
   </div>
 
