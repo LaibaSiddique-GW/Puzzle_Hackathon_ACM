@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Planet Hopper – Duo Level 2</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- HUD -->
+  <div id="hud" style="display:none">
+    <div id="hud-left">
+      <span class="player-badge red">P1</span> ← → ↑
+      <span id="hud-p2-controls" style="display:none">
+        &nbsp;&nbsp;&nbsp;
+        <span class="player-badge blue">P2</span> A D W
+      </span>
+    </div>
+    <div id="hud-right">
+      <button id="restartBtn" onclick="returnToMenu()">↩ Menu</button>
+    </div>
+  </div>
+
+  <!-- GAME CANVAS -->
+  <canvas id="gameCanvas" width="800" height="450"></canvas>
+
+  <!-- WIN OVERLAY -->
+  <div id="winOverlay" style="display:none">
+    <div id="winBox">
+      <div class="win-star">⭐</div>
+      <h2>Level Complete!</h2>
+      <p>You reached the goal!</p>
+      <button onclick="returnToMenu()">↩ Menu</button>
+    </div>
+  </div>
+
+  <script src="js/main.js"></script>
+</body>
+</html>
