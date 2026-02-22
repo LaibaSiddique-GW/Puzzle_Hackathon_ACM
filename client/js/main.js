@@ -24,6 +24,8 @@ document.addEventListener('keyup',   e => { keys[e.code] = false; });
 // ── Game Start / Menu ──────────────────────────────────────────────────────
 async function startGame(mode, level = 1) {
   numPlayers = mode;
+  // Mark that the user has played at least once
+  localStorage.setItem('hasPlayed', 'true');
 
   const res  = await fetch('/api/start_game', {
     method:  'POST',
@@ -238,7 +240,7 @@ function drawGoal(goal) {
   // Star label
   ctx.fillStyle = '#fff';
   ctx.font = 'bold 20px Arial';
-  ctx.fillText('★', goal.x + goal.w / 2 - 10, goal.y + goal.h / 2 + 8);
+  ctx.fillText('🛸', goal.x + goal.w / 2 - 10, goal.y + goal.h / 2 + 8);
 }
 
 function drawGoalDoor(door) {
@@ -253,7 +255,7 @@ function drawGoalDoor(door) {
   ctx.fillStyle = '#fff';
   ctx.font = 'bold 13px Arial';
   for (let iy = door.y + 20; iy < door.y + door.h - 10; iy += 36) {
-    ctx.fillText('⭐', door.x + 1, iy);
+    ctx.fillText('🛸', door.x + 1, iy);
   }
 }
 
@@ -335,7 +337,7 @@ function render() {
     }
   }
 
-  // Draw door pressure plates (yellow) — disappear when triggered
+  // Draw door pressure plates (brown) — disappear when triggered
   for (const plate of (lvl.pressure_plates || [])) {
     if (!plate.triggered) drawPressurePlate(plate);
   }
@@ -370,7 +372,7 @@ function render() {
     ctx.font = '13px Segoe UI';
     const goalHint = numPlayers >= 2
       ? '💡 Both players must stand on their ★ plate at the same time!'
-      : '💡 Find the ⭐ plate to reveal the goal!';
+      : '💡 Find the 🛸 plate to reveal the goal!';
     ctx.fillText(goalHint, 12, 24);
   }
 }

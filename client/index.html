@@ -2,25 +2,27 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Planet Hopper</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
   <!-- GAME ENTRY BOX -->
   <div class="game-entry-box">
-    <h1>Planet Hopper</h1>
+    <h1>Planet Hopper</h1> 
+  <div>
+      <img src="Planet_Hopper_Logo_ACM_Hackathon_2026.png" alt="Planet Hooper Logo" class="game-logo">
+  </div>
     <p>Have Fun and Explore our Universe, together or alone!<br><br>
       Choose your mode to begin:</p>
     <div class="mode-cards">
       <div class="mode-card" id="card1p">
-        <div class="mode-icon">🟨</div>
+        <div class="mode-icon">🟥</div>
         <h2>1 Player</h2>
         <p>Solo adventure.<br>Arrow Keys to move.</p>
         <button class="start-btn" onclick="window.location.href='/solo_level_1?mode=1'">Play Solo</button>
       </div>
       <div class="mode-card" id="card2p">
-        <div class="mode-icon">🟪🟨</div>
+        <div class="mode-icon">🟥🟦</div>
         
         <h2>2 Players</h2>
         <p>Same keyboard with a partner.<br>Work together!</p>
@@ -37,7 +39,17 @@
         <span>W A S D — Move &amp; Jump</span>
       </div>
     </div>
+    <div style="text-align:center; margin-top: 30px;">
+      <button class="start-btn" id="end-game-btn" onclick="window.location.href='thank_you.html'" style="display:none;">End Game</button>
+    </div>
   </div>
+
+  <script>
+    // Show End Game button if user has played before
+    if (localStorage.getItem('hasPlayed') === 'true') {
+      document.getElementById('end-game-btn').style.display = 'inline-block';
+    }
+  </script>
 
 
 </body>
