@@ -269,10 +269,10 @@ function drawGoalPlate(plate) {
     const label = plate.player === 'p1' ? 'P1' : 'P2';
     const col   = plate.player === 'p1' ? '#e74c3c' : '#3498db';
     ctx.fillStyle = plate.active ? '#000' : col;
-    ctx.fillText(label + '★', plate.x + plate.w / 2 - 7, plate.y + 7);
+    ctx.fillText(label + '🛸', plate.x + plate.w / 2 - 7, plate.y + 7);
   } else {
     ctx.fillStyle = plate.active ? '#000' : '#fff';
-    ctx.fillText('★', plate.x + plate.w / 2 - 4, plate.y + 8);
+    ctx.fillText('🛸', plate.x + plate.w / 2 - 4, plate.y + 8);
   }
 }
 

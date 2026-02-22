@@ -297,16 +297,16 @@ class GameState:
                     # Platform 2
                     {'x': 175, 'y': 320, 'w': 80,  'h': 16, 'color': '#5a5a5a', 'shadow': '#2e2e2e'},
                     # Platform 3 — door plate sits here (oscillates left-right)
-                    {'x': 280, 'y': 348, 'w': 80,  'h': 16, 'color': '#6b6b6b', 'shadow': '#3a3a3a',
+                    {'x': 280, 'y': 200, 'w': 80,  'h': 16, 'color': '#6b6b6b', 'shadow': '#3a3a3a',
                      'moving': True, 'move_center_x': 280, 'move_amp': 55, 'move_speed': 0.025},
                     # Platform 4 (right of door)
-                    {'x': 440, 'y': 352, 'w': 80,  'h': 16, 'color': '#5a5a5a', 'shadow': '#2e2e2e'},
+                    # {'x': 440, 'y': 352, 'w': 80,  'h': 16, 'color': '#5a5a5a', 'shadow': '#2e2e2e'},
                     # Platform 5 — elevated, goal plate sits here
-                    {'x': 535, 'y': 285, 'w': 85,  'h': 16, 'color': '#6b6b6b', 'shadow': '#3a3a3a'},
+                    {'x': 535, 'y': 150, 'w': 85,  'h': 16, 'color': '#6b6b6b', 'shadow': '#3a3a3a'},
                     # Platform 6 — landing before goal door
                     {'x': 640, 'y': 350, 'w': 75,  'h': 16, 'color': '#5a5a5a', 'shadow': '#2e2e2e'},
                     # Goal platform (against right wall)
-                    {'x': 736, 'y': 365, 'w': 48,  'h': 16, 'color': '#4a4a4a', 'shadow': '#222222'},
+                    {'x': 16, 'y': 125, 'w': 48,  'h': 16, 'color': '#4a4a4a', 'shadow': '#222222'},
                     # Walls (dark rock)
                     {'x': 0,   'y': 0,   'w': 16,  'h': 420, 'color': '#4a4a4a', 'shadow': '#222222'},
                     {'x': 784, 'y': 0,   'w': 16,  'h': 420, 'color': '#4a4a4a', 'shadow': '#222222'},
@@ -314,13 +314,13 @@ class GameState:
                 'doors': [{'x': 400, 'y': 0, 'w': 20, 'h': 420}],
                 'pressure_plates': [
                     # Plate x offset matches platform (tile center 280, plate center 290 = +10px)
-                    {'x': 290, 'y': 340, 'w': 60, 'h': 8, 'active': False, 'triggered': False,
+                    {'x': 290, 'y': 192, 'w': 60, 'h': 8, 'active': False, 'triggered': False,
                      'moving': True, 'move_center_x': 290, 'move_amp': 55, 'move_speed': 0.025}
                 ],
-                'goal_plate': {'x': 547, 'y': 277, 'w': 60, 'h': 8, 'active': False, 'triggered': False},
-                'goal_door':  {'x': 716, 'y': 0,   'w': 20, 'h': 420},
+                'goal_plate': {'x': 547, 'y': 142, 'w': 60, 'h': 8, 'active': False, 'triggered': False},
+                # 'goal_door':  {'x': 716, 'y': 0,   'w': 20, 'h': 420},
                 'goal_locked': True,
-                'goal': {'x': 736, 'y': 320, 'w': 48, 'h': 45},
+                'goal': {'x': 16, 'y': 75, 'w': 48, 'h': 45},
             }
         }
         return levels.get(n, levels[1])
