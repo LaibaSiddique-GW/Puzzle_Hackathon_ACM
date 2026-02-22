@@ -35,5 +35,32 @@
   </div>
 
   <script src="js/main.js"></script>
+  <script src="js/sound.js"></script>
+  <script>
+    // Play fire sound on load, stop on win overlay or navigation
+    window.addEventListener('DOMContentLoaded', () => {
+      if (typeof playFireSound === 'function') playFireSound();
+    });
+    function stopFireAndGo(action) {
+      if (typeof stopFireSound === 'function') stopFireSound();
+      action();
+    }
+    // Patch menu/next buttons to stop fire sound
+    document.addEventListener('DOMContentLoaded', () => {
+      document.querySelectorAll('button[onclick]').forEach(btn => {
+        if (btn.textContent.includes('Menu')) {
+          btn.onclick = () => stopFireAndGo(returnToMenu);
+        }
+      });
+    });
+    // Stop fire sound when win overlay is shown
+    const origShow = document.getElementById('winOverlay').style.display;
+    const observer = new MutationObserver(() => {
+      if (document.getElementById('winOverlay').style.display === 'flex') {
+        if (typeof stopFireSound === 'function') stopFireSound();
+      }
+    });
+    observer.observe(document.getElementById('winOverlay'), { attributes: true, attributeFilter: ['style'] });
+  </script>
 </body>
 </html>
