@@ -62,6 +62,14 @@ function goToSoloLevel2() {
   window.location.href = '/solo_level_2?mode=1&level=2';
 }
 
+function goToSoloLevel3() {
+  running   = false;
+  sessionId = null;
+  gameState = null;
+  won       = false;
+  window.location.href = '/solo_level_3?mode=1&level=3';
+}
+
 function goToDuoLevel2() {
   running   = false;
   sessionId = null;
@@ -146,12 +154,46 @@ function drawBackground() {
 }
 
 function drawTile(tile, color = TILE_COLOR, shadow = TILE_SHADOW) {
+  const c = tile.color  || color;
+  const s = tile.shadow || shadow;
   // Shadow/depth strip
-  ctx.fillStyle = shadow;
+  ctx.fillStyle = s;
   ctx.fillRect(tile.x, tile.y + tile.h - 6, tile.w, 6);
-  // Main tile
-  ctx.fillStyle = color;
+  // Main tile body
+  ctx.fillStyle = c;
   ctx.fillRect(tile.x, tile.y, tile.w, tile.h - 6);
+}
+
+function drawLava() {
+  const lavaTop = canvas.height - 50;
+  const t       = Date.now() / 800;
+  const pulse   = 0.6 + 0.4 * Math.abs(Math.sin(t));
+
+  // Upward glow before the lava surface
+  const glow = ctx.createLinearGradient(0, lavaTop - 35, 0, lavaTop);
+  glow.addColorStop(0, 'rgba(255,80,0,0)');
+  glow.addColorStop(1, `rgba(255,80,0,${(0.35 * pulse).toFixed(2)})`);
+  ctx.fillStyle = glow;
+  ctx.fillRect(0, lavaTop - 35, canvas.width, 35);
+
+  // Lava body
+  const grad = ctx.createLinearGradient(0, lavaTop, 0, canvas.height);
+  grad.addColorStop(0,    `rgba(255,90,0,${(0.9 * pulse).toFixed(2)})`);
+  grad.addColorStop(0.35, 'rgba(220,40,0,0.95)');
+  grad.addColorStop(1,    '#aa1a00');
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, lavaTop, canvas.width, canvas.height - lavaTop);
+
+  // Bright surface highlight
+  ctx.fillStyle = `rgba(255,${Math.round(160 * pulse)},0,${(pulse).toFixed(2)})`;
+  ctx.fillRect(0, lavaTop, canvas.width, 3);
+
+  // Tiny bright specks on the surface
+  ctx.fillStyle = '#ffdd00';
+  for (let sx = 30; sx < canvas.width; sx += 90) {
+    const ox = Math.sin(t + sx) * 12;
+    ctx.fillRect(sx + ox, lavaTop + 1, 10, 2);
+  }
 }
 
 function drawPressurePlate(plate) {
@@ -270,6 +312,9 @@ function render() {
   if (!gameState) return;
 
   const lvl = gameState.level;
+
+  // Draw lava floor for lava-themed levels
+  if (lvl.theme === 'lava') drawLava();
 
   // Draw normal tiles
   for (const tile of lvl.tiles) drawTile(tile);

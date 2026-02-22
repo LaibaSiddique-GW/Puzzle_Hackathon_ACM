@@ -62,9 +62,10 @@ class GameState:
             p.y += p.vy
             self._resolve_y(p)
 
-        # Check if any player fell into a pit (below canvas)
+        # Check if any player fell into a pit / lava (below canvas)
+        death_y = self.level.get('death_y', 600)
         for p in self.players.values():
-            if p.y > 600:
+            if p.y > death_y:
                 self.respawn_all()
                 break
 
@@ -271,6 +272,40 @@ class GameState:
                 'goal_door': {'x': 690, 'y': 0, 'w': 20, 'h': 420},
                 'goal_locked': True,
                 'goal': {'x': 715, 'y': 55, 'w': 55, 'h': 45},
+            },
+            3: {
+                # Level 3 — Lava World: no ground, only floating rock platforms.
+                # Falling past death_y (into lava) respawns all players.
+                'theme': 'lava',
+                'death_y': 420,
+                'spawns': [{'x': 30, 'y': 310}, {'x': 75, 'y': 310}],
+                'tiles': [
+                    # Spawn platform (anchored to left wall)
+                    {'x': 16,  'y': 365, 'w': 110, 'h': 16, 'color': '#6b6b6b', 'shadow': '#3a3a3a'},
+                    # Platform 2
+                    {'x': 175, 'y': 320, 'w': 80,  'h': 16, 'color': '#5a5a5a', 'shadow': '#2e2e2e'},
+                    # Platform 3 — door plate sits here
+                    {'x': 295, 'y': 348, 'w': 80,  'h': 16, 'color': '#6b6b6b', 'shadow': '#3a3a3a'},
+                    # Platform 4 (right of door)
+                    {'x': 440, 'y': 352, 'w': 80,  'h': 16, 'color': '#5a5a5a', 'shadow': '#2e2e2e'},
+                    # Platform 5 — elevated, goal plate sits here
+                    {'x': 535, 'y': 285, 'w': 85,  'h': 16, 'color': '#6b6b6b', 'shadow': '#3a3a3a'},
+                    # Platform 6 — landing before goal door
+                    {'x': 640, 'y': 350, 'w': 75,  'h': 16, 'color': '#5a5a5a', 'shadow': '#2e2e2e'},
+                    # Goal platform (against right wall)
+                    {'x': 736, 'y': 365, 'w': 48,  'h': 16, 'color': '#4a4a4a', 'shadow': '#222222'},
+                    # Walls (dark rock)
+                    {'x': 0,   'y': 0,   'w': 16,  'h': 420, 'color': '#4a4a4a', 'shadow': '#222222'},
+                    {'x': 784, 'y': 0,   'w': 16,  'h': 420, 'color': '#4a4a4a', 'shadow': '#222222'},
+                ],
+                'doors': [{'x': 400, 'y': 0, 'w': 20, 'h': 420}],
+                'pressure_plates': [
+                    {'x': 305, 'y': 340, 'w': 60, 'h': 8, 'active': False, 'triggered': False}
+                ],
+                'goal_plate': {'x': 547, 'y': 277, 'w': 60, 'h': 8, 'active': False, 'triggered': False},
+                'goal_door':  {'x': 716, 'y': 0,   'w': 20, 'h': 420},
+                'goal_locked': True,
+                'goal': {'x': 736, 'y': 320, 'w': 48, 'h': 45},
             }
         }
         return levels.get(n, levels[1])
@@ -375,6 +410,7 @@ class GameState:
             },
             'level': {
                 'tiles': self.level['tiles'],
+                'theme': self.level.get('theme'),
                 'doors': self.level.get('doors', []),
                 'pressure_plates': [
                     {**pl, 'player': pl.get('player'), 'duo': pl.get('duo', False)}

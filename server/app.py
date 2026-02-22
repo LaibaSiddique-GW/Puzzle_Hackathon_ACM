@@ -45,6 +45,10 @@ def solo_level_1():
 def solo_level_2():
     return render_template('solo_level_2.html')
 
+@app.route('/solo_level_3')
+def solo_level_3():
+    return render_template('solo_level_3.html')
+
 @app.route('/duo_level_1')
 def duo_level_1():
     return render_template('duo_level_1.html')
