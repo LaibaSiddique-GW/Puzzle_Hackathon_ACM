@@ -10,7 +10,7 @@ function playSoloSound() {
   setTimeout(() => {
     soloSound.pause();
     soloSound.currentTime = 0;
-  }, 1000);
+  }, 10000);
 }
 
 function playDuoSound() {
@@ -19,5 +19,5 @@ function playDuoSound() {
   setTimeout(() => {
     duoSound.pause();
     duoSound.currentTime = 0;
-  }, 1000);
+  }, 10000);
 }
