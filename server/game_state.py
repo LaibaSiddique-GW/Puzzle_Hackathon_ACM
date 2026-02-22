@@ -1,3 +1,5 @@
+import math
+
 GRAVITY = 0.6
 SPEED = 4
 JUMP_FORCE = -13
@@ -21,6 +23,7 @@ class GameState:
         self.num_players = num_players
         self.current_level = level_num
         self.level = self.load_level(self.current_level)
+        self.tick = 0
         self.players = {}
         self._spawn_players()
 
@@ -68,6 +71,15 @@ class GameState:
             if p.y > death_y:
                 self.respawn_all()
                 break
+
+        # Animate oscillating tiles and plates
+        self.tick += 1
+        for tile in self.level['tiles']:
+            if tile.get('moving'):
+                tile['x'] = tile['move_center_x'] + tile['move_amp'] * math.sin(self.tick * tile['move_speed'])
+        for plate in self.level.get('pressure_plates', []):
+            if plate.get('moving'):
+                plate['x'] = plate['move_center_x'] + plate['move_amp'] * math.sin(self.tick * plate['move_speed'])
 
         # Update pressure plates
         self._update_pressure_plates()
@@ -284,8 +296,9 @@ class GameState:
                     {'x': 16,  'y': 365, 'w': 110, 'h': 16, 'color': '#6b6b6b', 'shadow': '#3a3a3a'},
                     # Platform 2
                     {'x': 175, 'y': 320, 'w': 80,  'h': 16, 'color': '#5a5a5a', 'shadow': '#2e2e2e'},
-                    # Platform 3 — door plate sits here
-                    {'x': 295, 'y': 348, 'w': 80,  'h': 16, 'color': '#6b6b6b', 'shadow': '#3a3a3a'},
+                    # Platform 3 — door plate sits here (oscillates left-right)
+                    {'x': 280, 'y': 348, 'w': 80,  'h': 16, 'color': '#6b6b6b', 'shadow': '#3a3a3a',
+                     'moving': True, 'move_center_x': 280, 'move_amp': 55, 'move_speed': 0.025},
                     # Platform 4 (right of door)
                     {'x': 440, 'y': 352, 'w': 80,  'h': 16, 'color': '#5a5a5a', 'shadow': '#2e2e2e'},
                     # Platform 5 — elevated, goal plate sits here
@@ -300,7 +313,9 @@ class GameState:
                 ],
                 'doors': [{'x': 400, 'y': 0, 'w': 20, 'h': 420}],
                 'pressure_plates': [
-                    {'x': 305, 'y': 340, 'w': 60, 'h': 8, 'active': False, 'triggered': False}
+                    # Plate x offset matches platform (tile center 280, plate center 290 = +10px)
+                    {'x': 290, 'y': 340, 'w': 60, 'h': 8, 'active': False, 'triggered': False,
+                     'moving': True, 'move_center_x': 290, 'move_amp': 55, 'move_speed': 0.025}
                 ],
                 'goal_plate': {'x': 547, 'y': 277, 'w': 60, 'h': 8, 'active': False, 'triggered': False},
                 'goal_door':  {'x': 716, 'y': 0,   'w': 20, 'h': 420},

@@ -162,6 +162,12 @@ function drawTile(tile, color = TILE_COLOR, shadow = TILE_SHADOW) {
   // Main tile body
   ctx.fillStyle = c;
   ctx.fillRect(tile.x, tile.y, tile.w, tile.h - 6);
+  // Moving-platform indicator: draw ← → arrows centered on tile
+  if (tile.moving) {
+    ctx.font      = 'bold 9px Arial';
+    ctx.fillStyle = 'rgba(255,220,80,0.85)';
+    ctx.fillText('←  →', tile.x + tile.w / 2 - 14, tile.y + tile.h - 8);
+  }
 }
 
 function drawLava() {
