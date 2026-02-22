@@ -408,6 +408,73 @@ class GameState:
                 'goal_door':  {'x': 700, 'y': 0, 'w': 20, 'h': 420},
                 'goal_locked': True,
                 'goal': {'x': 722, 'y': 355, 'w': 55, 'h': 45},
+            },
+            3: {
+                # Duo Level 3 — Lava World.
+                # P1 spawns far-left, P2 far-right. Each has a door plate on
+                # their own elevated platform. Two doors split the level;
+                # both must stand simultaneously to open them.
+                # After the doors open, both players converge to the middle
+                # and must stand on their assigned ★ plates simultaneously
+                # to reveal the goal on the upper central platform.
+                'theme': 'lava',
+                'death_y': 420,
+                'spawns': [{'x': 50, 'y': 317}, {'x': 720, 'y': 317}],
+                'tiles': [
+                    # Walls (dark rock)
+                    {'x': 0,   'y': 0,   'w': 16,  'h': 420, 'color': '#4a4a4a', 'shadow': '#222222'},
+                    {'x': 784, 'y': 0,   'w': 16,  'h': 420, 'color': '#4a4a4a', 'shadow': '#222222'},
+                    # ── P1 zone (left) ────────────────────
+                    # P1 spawn platform — anchored to left wall
+                    {'x': 16,  'y': 365, 'w': 110, 'h': 16, 'color': '#6b6b6b', 'shadow': '#3a3a3a'},
+                    # P1 hop platform (moving — must time the jump!)
+                    # {'x': 165, 'y': 310, 'w': 80,  'h': 16, 'color': '#5a5a5a', 'shadow': '#2e2e2e',
+                    #  'moving': True, 'move_center_x': 165, 'move_amp': 25, 'move_speed': 0.020},
+                    # P1 door plate platform (elevated, moving — must time the jump!)
+                    {'x': 150, 'y': 245, 'w': 80,  'h': 16, 'color': '#6b6b6b', 'shadow': '#3a3a3a',
+                     'moving': True, 'move_center_x': 150, 'move_amp': 35, 'move_speed': 0.022},
+                    # ── Middle zone ────────────────────
+                    # P1 ★ goal platform (left of center, static)
+                    {'x': 315, 'y': 300, 'w': 75,  'h': 16, 'color': '#5a5a5a', 'shadow': '#2e2e2e'},
+                    # Upper central platform — goal appears here (static)
+                    {'x': 350, 'y': 215, 'w': 100, 'h': 16, 'color': '#6b6b6b', 'shadow': '#3a3a3a'},
+                    # P2 ★ goal platform (right of center, static)
+                    {'x': 410, 'y': 300, 'w': 75,  'h': 16, 'color': '#5a5a5a', 'shadow': '#2e2e2e'},
+                    # ── P2 zone (right) ────────────────────
+                    # P2 door plate platform (elevated, moving — mirrors P1 door platform)
+                    {'x': 545, 'y': 245, 'w': 80,  'h': 16, 'color': '#6b6b6b', 'shadow': '#3a3a3a',
+                     'moving': True, 'move_center_x': 545, 'move_amp': 35, 'move_speed': 0.022},
+                    # P2 hop platform (moving — mirrors P1 hop)
+                    # {'x': 565, 'y': 310, 'w': 80,  'h': 16, 'color': '#5a5a5a', 'shadow': '#2e2e2e',
+                    #  'moving': True, 'move_center_x': 565, 'move_amp': 25, 'move_speed': 0.020},
+                    # P2 spawn platform — anchored to right wall
+                    {'x': 674, 'y': 365, 'w': 110, 'h': 16, 'color': '#6b6b6b', 'shadow': '#3a3a3a'},
+                    #  Goal platform (against right wall)
+                    {'x': 16, 'y': 125, 'w': 48,  'h': 16, 'color': '#4a4a4a', 'shadow': '#222222'},
+                ],
+                # Two doors: one blocking each player from the middle.
+                # Both permanently open when all duo door plates triggered simultaneously.
+                'doors': [
+                    {'x': 295, 'y': 0, 'w': 20, 'h': 420},  # Left door
+                    {'x': 485, 'y': 0, 'w': 20, 'h': 420},  # Right door
+                ],
+                'pressure_plates': [
+                    # P1 plate — tracks P1 door platform (same amp/speed, +8px offset)
+                    {'x': 158, 'y': 237, 'w': 60, 'h': 8, 'active': False, 'triggered': False, 'duo': True, 'player': 'p1',
+                     'moving': True, 'move_center_x': 158, 'move_amp': 35, 'move_speed': 0.022},
+                    # P2 plate — tracks P2 door platform (same amp/speed, +8px offset)
+                    {'x': 552, 'y': 237, 'w': 60, 'h': 8, 'active': False, 'triggered': False, 'duo': True, 'player': 'p2',
+                     'moving': True, 'move_center_x': 552, 'move_amp': 35, 'move_speed': 0.022},
+                ],
+                'goal_plates': [
+                    # P1 ★ plate — static
+                    {'x': 323, 'y': 292, 'w': 60, 'h': 8, 'active': False, 'triggered': False, 'duo': True, 'player': 'p1'},
+                    # P2 ★ plate — static
+                    {'x': 418, 'y': 292, 'w': 60, 'h': 8, 'active': False, 'triggered': False, 'duo': True, 'player': 'p2'},
+                ],
+                'goal_locked': True,
+                # Goal appears on the upper central platform when both ★ plates triggered
+                'goal': {'x': 16, 'y': 75, 'w': 48, 'h': 45},
             }
         }
         return levels.get(n, levels[1])

@@ -80,6 +80,14 @@ function goToDuoLevel2() {
   window.location.href = '/duo_level_2?mode=2&level=2';
 }
 
+function goToDuoLevel3() {
+  running   = false;
+  sessionId = null;
+  gameState = null;
+  won       = false;
+  window.location.href = '/duo_level_3?mode=2&level=3';
+}
+
 // ── Auto-start from URL param ───────────────────────────────────────────────
 window.addEventListener('DOMContentLoaded', () => {
   const params = new URLSearchParams(window.location.search);

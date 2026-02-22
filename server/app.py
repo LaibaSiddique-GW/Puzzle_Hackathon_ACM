@@ -57,6 +57,10 @@ def duo_level_1():
 def duo_level_2():
     return render_template('duo_level_2.html')
 
+@app.route('/duo_level_3')
+def duo_level_3():
+    return render_template('duo_level_3.html')
+
 @app.route('/api/start_game', methods=['POST'])
 def start_game():
     data = request.get_json()
