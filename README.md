@@ -16,3 +16,7 @@ Have Fun !
 - Install the `flask`, `flask_socketio`, and `game_state` Python packages if you do not have them.
 - Navigate to the main holder of this project using your terminal, or by opening the folder in VSCode (or your preferred IDE) and pressing `Terminal` in the top bar and then `New Terminal`. 
 - Type `python server/app.py` to start program. If that does not work, try `python3 server/app.py`. You can stop the program by pressing `cntrl-C`in the terminal. 
+
+## Sound Sources
+
+- The sounds come from Unity's free sound assets. 
