@@ -49,11 +49,16 @@ async function startGame(mode, level = 1) {
 }
 
 function returnToMenu() {
-  running   = false;
-  sessionId = null;
-  gameState = null;
-  won       = false;
-  window.location.href = '/';
+    running   = false;
+    sessionId = null;
+    gameState = null;
+    won       = false;
+    if (numPlayers === 2 && typeof playDuoSound === 'function') {
+      playDuoSound();
+    } else if (typeof playSoloSound === 'function') {
+      playSoloSound();
+    }
+    window.location.href = '/';
 }
 
 function goToSoloLevel2() {
@@ -61,6 +66,9 @@ function goToSoloLevel2() {
   sessionId = null;
   gameState = null;
   won       = false;
+  if (typeof playSoloSound === 'function') {
+    playSoloSound();
+  }
   window.location.href = '/solo_level_2?mode=1&level=2';
 }
 
@@ -69,6 +77,9 @@ function goToSoloLevel3() {
   sessionId = null;
   gameState = null;
   won       = false;
+  if (typeof playSoloSound === 'function') {
+    playSoloSound();
+  }
   window.location.href = '/solo_level_3?mode=1&level=3';
 }
 
@@ -77,6 +88,9 @@ function goToDuoLevel2() {
   sessionId = null;
   gameState = null;
   won       = false;
+  if (typeof playDuoSound === 'function') {
+    playDuoSound();
+  }
   window.location.href = '/duo_level_2?mode=2&level=2';
 }
 
@@ -85,6 +99,9 @@ function goToDuoLevel3() {
   sessionId = null;
   gameState = null;
   won       = false;
+  if (typeof playDuoSound === 'function') {
+    playDuoSound();
+  }
   window.location.href = '/duo_level_3?mode=2&level=3';
 }
 
@@ -130,6 +147,7 @@ async function tick() {
 
     if (data.win) {
       won = true;
+      if (typeof playWinSound === 'function') playWinSound();
       document.getElementById('winOverlay').style.display = 'flex';
     }
   } catch (err) {
