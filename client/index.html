@@ -19,14 +19,29 @@
         <div class="mode-icon">🟥</div>
         <h2>1 Player</h2>
         <p>Solo adventure.<br>Arrow Keys to move.</p>
-        <button class="start-btn" onclick="window.location.href='/solo_level_1?mode=1'">Play Solo</button>
+        <button class="start-btn" onclick="playSoloAndGo()">Play Solo</button>
       </div>
       <div class="mode-card" id="card2p">
         <div class="mode-icon">🟥🟦</div>
         
         <h2>2 Players</h2>
         <p>Same keyboard with a partner.<br>Work together!</p>
-        <button class="start-btn" onclick="window.location.href='/duo_level_1?mode=2&level=1'">Play in a Duo</button>
+        <button class="start-btn" onclick="playDuoAndGo()">Play in a Duo</button>
+        <script src="js/sound.js"></script>
+        <script>
+          function playSoloAndGo() {
+            if (typeof playSoloSound === 'function') playSoloSound();
+            setTimeout(function() {
+              window.location.href = '/solo_level_1?mode=1';
+            }, 150);
+          }
+          function playDuoAndGo() {
+            if (typeof playDuoSound === 'function') playDuoSound();
+            setTimeout(function() {
+              window.location.href = '/duo_level_1?mode=2&level=1';
+            }, 150);
+          }
+        </script>
       </div>
     </div>
     <div id="controls-preview">
